@@ -74,7 +74,7 @@ class ActionResponse
      * @param null|mixed $default value to return if using `$key`
      * @return array
      */
-    public function data(string $key = null, $default = null)
+    public function data(?string $key = null, $default = null)
     {
         return data_get($this->data, $key, $default);
     }
