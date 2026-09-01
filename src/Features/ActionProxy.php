@@ -88,7 +88,7 @@ class ActionProxy
      * @return false|Response
      * @throws LanternException
      */
-    public function checkAvailabilityThroughGate(Authorizable $user = null)
+    public function checkAvailabilityThroughGate(?Authorizable $user = null)
     {
         $features = FeatureRegistry::featuresForAction($this->action);
 
