@@ -104,6 +104,10 @@ class MakeActionCommand extends GeneratorCommand
         return false;
     }
 
+    /**
+     * @return int
+     */
+    // @phpstan-ignore method.childReturnType (GeneratorCommand documents bool|null, but Command::execute() casts the return value to an int exit code)
     public function handle()
     {
         // Check if class already exists

@@ -9,11 +9,14 @@ use Lantern\LanternException;
 
 /**
  * The ActionProxy can call an action and check if the action is available.
+ *
+ * @template T of Action
+ * @mixin T
  */
 class ActionProxy
 {
     /**
-     * @var Action
+     * @var T
      */
     protected $action;
 
@@ -22,6 +25,9 @@ class ActionProxy
      */
     protected $available;
 
+    /**
+     * @param T $action
+     */
     public function __construct(Action $action)
     {
         $this->action = $action;
@@ -85,16 +91,18 @@ class ActionProxy
 
     /**
      * @param Authorizable|null $user
-     * @return false|Response
+     * @return Response
      * @throws LanternException
      */
-    public function checkAvailabilityThroughGate(?Authorizable $user = null)
+    public function checkAvailabilityThroughGate(?Authorizable $user = null): Response
     {
         $features = FeatureRegistry::featuresForAction($this->action);
 
         foreach ($features as $feature) {
             if (! $feature->constraintsMet()) {
-                return $this->available = false;
+                return $this->available = Response::deny(
+                    sprintf('Feature %s: constraints failed', $feature::id())
+                );
             }
         }
 
@@ -107,13 +115,7 @@ class ActionProxy
     {
         $user = $this->getUser($user);
 
-        $check = app(GateContract::class)->forUser($user)->allows(FeatureRegistry::getActionIdForGate($this->action), [$this]);
-
-        if (is_bool($check)) {
-            $check = $check ? Response::allow() : Response::deny();
-        }
-
-        return $check->allowed();
+        return app(GateContract::class)->forUser($user)->allows(FeatureRegistry::getActionIdForGate($this->action), [$this]);
     }
 
     protected function getUser($user = null)
