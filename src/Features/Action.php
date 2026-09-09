@@ -17,22 +17,23 @@ abstract class Action
     /**
      * Used to flag if your action is performed for guest users, not authenticated users (the default).
      *
-     * @var string Overwrite this with `true` to validate properly against guest users
+     * @var bool Overwrite this with `true` to validate properly against guest users
      */
     const GUEST_USERS = false;
 
     /**
      * Used to identify the action – the ID must be unique across all Lantern actions declared.
      *
-     * @var string Overwrite this with your own custom ID if the default is not what you want
+     * @var string|null Overwrite this with your own custom ID if the default is not what you want
      */
     const ID = null;
 
     /**
      * This is a proxy for the constructor of the static class
      *
-     * @param static::__construct ...$dependencies
+     * @param mixed ...$dependencies
      * @return ActionProxy|static
+     * @phpstan-return ActionProxy<static>
      * @see static::__construct()
      */
     public static function make(...$dependencies): ActionProxy

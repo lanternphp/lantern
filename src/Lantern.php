@@ -13,7 +13,7 @@ class Lantern
     protected static $pathDirs = [];
 
     /**
-     * @var string a class to use as a custom availability builder
+     * @var string|null a class to use as a custom availability builder
      */
     protected static $customAvailabilityBuilder = null;
 
@@ -23,7 +23,7 @@ class Lantern
      */
     public static function pathDirs(array $dirs = []): array
     {
-        if (is_array($dirs) && !empty($dirs)) {
+        if (!empty($dirs)) {
             return static::$pathDirs = $dirs;
         }
 

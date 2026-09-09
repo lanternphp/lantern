@@ -6,6 +6,7 @@ namespace LanternTest\Unit\ActionsTest;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Lantern\Features\Action;
+use Lantern\Features\ActionResponse;
 use Lantern\Features\AvailabilityBuilder;
 use Lantern\Features\ConstraintsBuilder;
 use Lantern\Features\Feature;
@@ -30,6 +31,24 @@ class ActionsTest extends TestCase
     {
         Lantern::setUp(AllFeatures::class);
         $this->assertFalse(ActionWithFailingConstraint::make()->available());
+    }
+
+    #[Test]
+    public function anActionIsUnavailableIfItsFeatureConstraintsFail()
+    {
+        Lantern::setUp(FeatureWithFailingConstraint::class);
+        $this->assertFalse(ActionInFeatureWithFailingConstraint::make()->available());
+    }
+
+    #[Test]
+    public function performingAnActionWhoseFeatureConstraintsFailThrowsAnException()
+    {
+        $this->expectException(LanternException::class);
+        $this->expectExceptionCode(202);
+        $this->expectExceptionMessage('constraints failed');
+
+        Lantern::setUp(FeatureWithFailingConstraint::class);
+        ActionInFeatureWithFailingConstraint::make()->perform();
     }
 
     #[Test]
@@ -182,7 +201,7 @@ class ActionUsingCustomAvailabilityBuilder extends Action
     const GUEST_USERS = true;
 
     /**
-     * @param CustomAvailabilityBuilder|AvailabilityBuilder $availabilityBuilder
+     * @param CustomAvailabilityBuilder $availabilityBuilder
      * @return void
      */
     protected function availability(AvailabilityBuilder $availabilityBuilder)
@@ -217,6 +236,28 @@ class AllFeatures extends Feature
 class ActionMissingMethods extends Action
 {
     const GUEST_USERS = true;
+}
+
+class FeatureWithFailingConstraint extends Feature
+{
+    const ACTIONS = [
+        ActionInFeatureWithFailingConstraint::class,
+    ];
+
+    protected function constraints(ConstraintsBuilder $constraints)
+    {
+        $constraints->extensionIsLoaded('some_random_extension_that_surely_wont_exist_for_lantern_testing');
+    }
+}
+
+class ActionInFeatureWithFailingConstraint extends Action
+{
+    const GUEST_USERS = true;
+
+    public function perform(): ActionResponse
+    {
+        return $this->success();
+    }
 }
 
 class FeatureWithMissingMethods extends Feature

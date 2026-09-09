@@ -134,7 +134,7 @@ class FeatureRegistry
 
             app(GateContract::class)->define($gateActionId, function ($user = null, ...$args) use ($action) {
                 if ($args && $args[0] instanceof ActionProxy) {
-                    return $args[0]->checkAvailabilityThroughGate($user, true);
+                    return $args[0]->checkAvailabilityThroughGate($user);
                 } else {
                     return $action::make(...$args)->checkAvailabilityThroughGate($user);
                 }
@@ -165,19 +165,15 @@ class FeatureRegistry
             throw LanternException::subFeatureCannotDeclareStack();
         }
 
-        if ($startingStack !== null && $featureStack === null) {
+        if ($startingStack === null) {
+            return $featureStack ?? 'default';
+        }
+
+        if ($featureStack === null) {
             return $startingStack;
         }
 
-        if ($startingStack === null && $featureStack !== null) {
-            return $featureStack;
-        }
-
-        if ($startingStack !== null && $featureStack !== null) {
-            return "$startingStack.$featureStack";
-        }
-
-        return 'default';
+        return "$startingStack.$featureStack";
     }
 
     /**

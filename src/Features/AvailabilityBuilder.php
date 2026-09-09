@@ -3,6 +3,7 @@
 namespace Lantern\Features;
 
 use Illuminate\Auth\Access\Response;
+use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 
 /**
@@ -21,7 +22,9 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 class AvailabilityBuilder
 {
     protected Action $action;
+    /** @var array<int, callable(): Response> */
     protected array $checks = [];
+
     protected AuthenticatableContract $user;
 
     public function __construct(Action $action, AuthenticatableContract $user)
@@ -40,10 +43,15 @@ class AvailabilityBuilder
         return $this->action;
     }
 
+    protected function gate(): GateContract
+    {
+        return app(GateContract::class)->forUser($this->user);
+    }
+
     public function userCan($ability, $arguments = []): self
     {
         $this->checks[] = function () use ($ability, $arguments): Response {
-            if ($this->user->can($ability, $arguments)) {
+            if ($this->gate()->check($ability, $arguments)) {
                 return Response::allow();
             }
 
@@ -56,7 +64,7 @@ class AvailabilityBuilder
     public function userCannot($ability, $arguments = []): self
     {
         $this->checks[] = function () use ($ability, $arguments): Response {
-            if ($this->user->cannot($ability, $arguments)) {
+            if (! $this->gate()->check($ability, $arguments)) {
                 return Response::allow();
             }
 
